@@ -189,7 +189,6 @@ fix_errors()
             sudo pacman -U "archlinux-keyring${version}-any.pkg.tar.xz" --noconfirm && \
             sudo rm "archlinux-keyring${version}-any.pkg.tar.xz"
 
-        # the following command sometimes prevents an error connecting to the key server		
         sudo dirmngr </dev/null
         echo "pacman-key --init"
         sudo pacman-key --init && sudo pacman-key --populate archlinux
@@ -383,19 +382,18 @@ main()
             helper -Qdt
             paccache -ruvk0
             paccache -rvk2
-			
-			disk=$(lsblk -o "name,mountpoint" -pa | sed -n '/^\//h;/\/$/{g;p}' | cut -d/ -f3)
-			disk="${disk:0:3}"
-			if [[ -n "$disk" && -e "/dev/$disk" ]]; then
+
+            disk=$(lsblk -o "name,mountpoint" -pa | sed -n '/^\//h;/\/$/{g;p}' | cut -d/ -f3)
+            disk="${disk:0:3}"
+            if [[ -n "$disk" && -e "/dev/$disk" ]]; then
                 [[ $(cat $(find /sys -name 'rotational' 2>/dev/null | grep "$disk/queue")) == "1" ]] \
                     && sudo pacman-optimize
-			fi
-			unset disk
-			
-			echo
+            fi
+            unset disk
+            echo
             print_hook
             print_prompt "$(gettext 'System is updated and cache is cleaned')." "" 1
-			;;
+            ;;
         3)
             echo
             pkg=($(print_enter "$(gettext 'Select packages to install (use TAB to toggle selection)')" \
@@ -455,7 +453,7 @@ main()
             ;;
         12)
             echo
-			$(print_enter "$(gettext 'Enter one or more filter terms')" "$(tail -2000 /var/log/pacman.log)" '-m +s -q alpm --tac' ) >> /tmp/pacli-log			
+            $(print_enter "$(gettext 'Enter one or more filter terms')" "$(tail -2000 /var/log/pacman.log)" '-m +s -q alpm --tac' ) >> /tmp/pacli-log			
             ;;
         13)
             help_text $choix "${PARAMS['helpred']}" || continue
