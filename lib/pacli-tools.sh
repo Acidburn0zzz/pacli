@@ -192,15 +192,15 @@ print_prompt()
     else
         str="$(gettext 'To return to pacli Press any key')"
     fi
-    end="${2:-$str}"
-    [ -z "$end" ] && end="$str"
-    default="${1} ${str}"
-    printf "\n$NC%s$NC\n" "$(mcenter $default)"
-    if [ -n "$wantreturn" ]; then
-        read
-    else
-        read -n1 -s
-    fi
+end="${2:-$str}"
+[ -z "$end" ] && end="$str"
+default="${1} ${str}"
+printf "\n$NC%s$NC\n" "$(mcenter $default)"
+if [ -n "$wantreturn" ]; then
+    read
+else
+    read -n1 -s
+fi
 }
 
 # print_enter <label> <list> <option>
@@ -232,7 +232,7 @@ input_mnu()
     for line in "${MENUS[@]}"; do
         datas=( ${line//:/$'\n' } )
         if [[ "${datas[0]}" =~ [0-9] ]]; then
-            choice=("$(echo -e "${datas[1]} (${datas[0]})\n${choice[@]}")")
+            choice=("$(echo -e "${datas[1]} (${datas[0]})\n${choice[*]}")")
         fi
     done
     ret=$(fzf-tmux -e --exit-0 --tac --prompt="$1 >" <<< "$choice" | awk -F'(' '{print $2}' )
@@ -245,8 +245,7 @@ input_mnu()
 }
 
 #show main menu  <menu_buffer:string in option>
-menu_show()
-{
+menu_show() {
     ((NOCLEAR)) || clear
     echo ""
     printf "\n$NC%s$NC" "$(mcenter '::Pacli - Package manager::')"
@@ -257,8 +256,7 @@ menu_show()
 }
 
 # read choise after main menu
-read_choice()
-{
+read_choice() {
     declare choice="$1"
     if [ -n "$choice" ]; then
         declare -i int=$((choice+0))
@@ -302,8 +300,7 @@ int_to_yes() {
 
 # catplus()
 # params : catplus <file> <section-id (defaut:all)>
-catplus()
-{
+catplus() {
     declare file="$1" txt
     declare id="${2:-0}" ids=$((id+1))
     if [ -r "$file" ]; then
@@ -324,8 +321,7 @@ catplus()
 # params : help_text <section> <user config if show this help (default:1)>
 # return 0 run command after (default)
 # return 1 go to menu
-help_text()
-{
+help_text() {
     [[ "${2:-1}" != "1" ]] && return 0    # not help for red command
     declare id="${1:-0}" command='less -R'
     [ -z "$LG" ] && LG=${LANG:0:2}

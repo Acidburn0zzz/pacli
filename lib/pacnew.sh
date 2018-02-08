@@ -8,8 +8,7 @@ declare -i islib=0
 declare -a pacnews=()
 
 #params files : <ORIGINAL> <PACNEW>
-show_diff()
-{
+show_diff() {
     declare file1="$1" file2="$2" c line
     if (( $(diff "${file1}" "${file2}"|wc -l) == 0 )); then
         # can remove etc/pacnew
@@ -19,14 +18,14 @@ show_diff()
         echo "#${file2}"
         declare IFS=$'\n'
         # < : removed       > : added
-        diff "$file1" "$file2" | grep -E "^>|^<" | while read line ; do
+        while read -r line ; do
             [[ "${line::1}" == '<' ]] &&  c="${RED}-" || c="${GREENC}+"
             printf "$c ${line:2}$NC\n"
-        done   
+        done <<< "$(diff "$file1" "$file2" | grep -E "^>|^<")"
     fi
 }
 
-get_su(){
+get_su() {
     declare mysu='sudo'
     if [ -f '/usr/bin/kdesu' ]; then
         mysu='kdesu'
@@ -35,7 +34,7 @@ get_su(){
     fi
     echo "$mysu"
 }
-get_editor_news(){
+get_editor_news() {
     declare -a cmd=( $(get_su) )
     declare edit="$(command -v "${PARAMS[peditor]}")"
     [ ! -f "$edit" ] && return 1
@@ -45,8 +44,7 @@ get_editor_news(){
 }
 
 # param <ID> index +1 array pacnews
-run_pacnew()
-{
+run_pacnew() {
     declare choix ofile fname
     choix=$(($1+0))
     fname="${pacnews[$choix]}"
@@ -74,8 +72,7 @@ run_pacnew()
     fi
 }
 
-get_files()
-{
+get_files() {
     #pacnews=($(find '/etc' -name "*.$EXT" -mtime -$AGE -type f 2>/dev/null))
     while read  key value; do
         pacnews["$key"]="$value"
@@ -83,8 +80,7 @@ get_files()
     MAX="${#pacnews[@]}"
 }
 
-display_pacnews()
-{
+display_pacnews() {
     local id=0 ids=0 old line='' fistline='' str
     ((NOCLEAR)) || clear
     mcenter "$(gettext 'Pacnews')"
@@ -117,8 +113,7 @@ display_pacnews()
     printf "${NC}%s${NC}\n" "$(mcenter "$str")"
 }
 
-main_pacnew()
-{
+main_pacnew() {
     declare choice
     get_files
     while true; do
