@@ -130,8 +130,7 @@ menu_calculate_size() {
 
 # parse array and transform it to str
 # user MENUS array
-menu_load()
-{
+menu_load() {
     declare line
     declare -a item=() datas=()
     declare IFS=$'\n'
@@ -170,7 +169,7 @@ menu_load()
 
 # mcenter <text>
 # add left spaces for center text on screen
-mcenter(){
+mcenter() {
     declare txt="$@"
     declare -i w="${#txt}" i=1 wmnu=$((WMENU+3))
     if (( w < wmnu )); then
@@ -184,30 +183,28 @@ mcenter(){
 
 # print_prompt <text> <text> <want_return =0>
 # print centered text ans wait a key press
-print_prompt()
-{
+print_prompt() {
     declare wantreturn=${3} str end default
     if [ -n "$wantreturn" ]; then
         str="$(gettext 'To return to pacli press [Enter]')"
     else
         str="$(gettext 'To return to pacli Press any key')"
     fi
-end="${2:-$str}"
-[ -z "$end" ] && end="$str"
-default="${1} ${str}"
-printf "\n$NC%s$NC\n" "$(mcenter $default)"
-if [ -n "$wantreturn" ]; then
-    read
-else
-    read -n1 -s
-fi
+    end="${2:-$str}"
+    [ -z "$end" ] && end="$str"
+    default="${1} ${str}"
+    printf "\n$NC%s$NC\n" "$(mcenter $default)"
+    if [ -n "$wantreturn" ]; then
+        read
+    else
+        read -n1 -s
+    fi
 }
 
 # print_enter <label> <list> <option>
 # use fzf for select one or more items in list
 # return only first colum
-print_enter()
-{
+print_enter() {
     declare ret="" choice=("$2") cancel
     if (("${PARAMS['cancellist']}"==1)); then
         cancel=("** $(gettext 'CANCEL OR ESC TOUCH')")
@@ -224,8 +221,7 @@ print_enter()
 
 # show in main menu all items (id>49)
 # input_mnu <label>
-input_mnu()
-{
+input_mnu() {
     declare -a choice=()
     declare line datas ret
     declare IFS=$'\n'
