@@ -190,15 +190,15 @@ print_prompt() {
     else
         str="$(gettext 'To return to pacli Press any key')"
     fi
-    end="${2:-$str}"
-    [ -z "$end" ] && end="$str"
-    default="${1} ${str}"
-    printf "\n$NC%s$NC\n" "$(mcenter $default)"
-    if [ -n "$wantreturn" ]; then
-        read
-    else
-        read -n1 -s
-    fi
+end="${2:-$str}"
+[ -z "$end" ] && end="$str"
+default="${1} ${str}"
+printf "\n$NC%s$NC\n" "$(mcenter $default)"
+if [ -n "$wantreturn" ]; then
+    read
+else
+    read -n1 -s
+fi
 }
 
 # print_enter <label> <list> <option>
@@ -231,6 +231,7 @@ input_mnu() {
             choice=("$(echo -e "${datas[1]} (${datas[0]})\n${choice[*]}")")
         fi
     done
+    clear
     ret=$(fzf-tmux -e --exit-0 --tac --prompt="$1 >" <<< "$choice" | awk -F'(' '{print $2}' )
     if (($?==0)); then
         [[ "$ret" == "" ]] && return 1

@@ -123,37 +123,35 @@ libfile="./lib/helper-${PARAMS['helper']}.sh"
 ########    functions    ########
 
 # "yaourt -Sl" downloads a list of packages EVERY TIME it is called. this is unacceptable.
-# write package list of repositories to /tmp/packages. then, download AUR package list, unzip it to /tmp/aur/packages, and add it to the bottom of /tmp/packages.
+# write package list of repositories to /tmp/packages. then, download AUR package list,
+# unzip it to /tmp/aur/packages, and add it to the bottom of /tmp/packages.
 load_packages_infos() {
     helper -Slq 2>/dev/null 1>/tmp/packages &
-    wget -P /tmp/aur/ https://aur.archlinux.org/packages.gz >/dev/null 2>&1 \
-        && cat /tmp/aur/packages.gz >> /tmp/packages &
+    wget -P /tmp/aur/ https://aur.archlinux.org/packages.gz &>/dev/null && cat /tmp/aur/packages.gz >> /tmp/packages &
 }
 
 ########    pacman    ######
 
 #5  package info
 package_information() {
-    declare pkg='' cmd='Sii' out
+    declare cmd='Sii'
     pacman -Qq > /tmp/local_packages
     cat /tmp/packages /tmp/local_packages | sort -u | uniq > /tmp/all_packages
-
     pkg=$(print_enter "$(gettext 'Select a package to display information about')" \
-        "$(cat /tmp/packages)")
+        "$(cat /tmp/packages)" )
     (($?!=0)) && return 1
     [ -z "$pkg" ] && return 1
     $(helper_pkgisinstalled "${pkg}") && cmd='Qii'  #(yaourt -Qq "${pkg}" &>/dev/null) && cmd='Qii'
     out=$(helper "-$cmd" "${pkg}")
-    echo -e "$out" | grep -v "\-\-$" \
-        | sed 's/ : \(.*\)/ \x1b[0m: \x1b[1m\1\x1b[0m/; s/  \(.*\)/  \x1b[1m\1\x1b[0m/'
-    print_prompt "$(gettext 'Package information displayed')."
+    clear && echo
+    grep -v "\-\-$" <<< "$out" | sed 's/ : \(.*\)/ \x1b[0m: \x1b[1m\1\x1b[0m/' | sed 's/  \(.*\)/  \x1b[1m\1\x1b[0m/'
+    print_prompt "$(gettext 'Package information displayed.')"
 }
 
 #6  List Local Package Files
 package_list_files() {
     declare pkg
-    pkg=($(print_enter \
-        "$(gettext 'Select a packages of which to list all files (use TAB to toggle selection)')" \
+    pkg=($(print_enter "$(gettext 'Select a packages of which to list all files (use TAB to toggle selection)')" \
         "$(helper '-Qq')" '-m' ))
     (($?!=0)) && return 1
     [ -z "$pkg" ] && return 1
@@ -166,15 +164,11 @@ fix_errors() {
     declare cmd url version arch keys
     sudo rm -f /var/lib/pacman/db.lck
     cmd=(sudo pacman -Syy)
-    keys=(
-    'AEFB411B072836CD48FF0381AE252C284B5DBA5D'
-    '9E4F11C6A072942A7B3FD3B0B81EB14A09A25EB0'
-    '35F52A02854DCCAEC9DD5CC410443C7F54B00041'
-    )
+    keys=('AEFB411B072836CD48FF0381AE252C284B5DBA5D' '9E4F11C6A072942A7B3FD3B0B81EB14A09A25EB0' '35F52A02854DCCAEC9DD5CC410443C7F54B00041')
 
     if hash reflector >/dev/null 2>&1 && [[ $(source /etc/os-release; echo $ID) ==  "ArchLabs" ]]; then
-        sudo reflector --verbose --score 100 --fastest 25 \
-            --sort rate --save /etc/pacman.d/mirrorlist && "${cmd[@]}"
+
+        sudo reflector --verbose --score 100 --fastest 25 --sort rate --save /etc/pacman.d/mirrorlist && "${cmd[@]}"
         sudo rm -r /etc/pacman.d/gnupg &>/dev/null
 
         arch=$(uname -m)
@@ -184,8 +178,7 @@ fix_errors() {
             sudo pacman -U "gnupg${version}-${arch}.pkg.tar.xz" --noconfirm && \
             sudo rm "gnupg${version}-${arch}.pkg.tar.xz"
 
-        version="$(lang=C pacman -Si archlinux-keyring | awk -F':' ' /^Ver/ {print $2}' \
-            | sed 's# #-#' | head -n 1)"
+        version="$(lang=C pacman -Si archlinux-keyring | awk -F':' ' /^Ver/ {print $2}' | sed 's# #-#' | head -n 1)"
         url="http://mirror.pseudoform.org/core/os/${arch}/archlinux-keyring${version}-any.pkg.tar.xz"
         wget "${url}" && \
             sudo pacman -U "archlinux-keyring${version}-any.pkg.tar.xz" --noconfirm && \
@@ -209,11 +202,9 @@ fix_errors() {
         sudo pacman-key --populate archlabs
 
     elif hash reflector >/dev/null 2>&1; then
-        sudo reflector --verbose --score 100 --fastest 25 \
-            --sort rate --save /etc/pacman.d/mirrorlist && "${cmd[@]}"
+        sudo reflector --verbose --score 100 --fastest 25 --sort rate --save /etc/pacman.d/mirrorlist && "${cmd[@]}"
         sudo pacman -Sy gnupg archlinux-keyring && sudo rm -r /etc/pacman.d/gnupg && \
-            sudo pacman-key --init && sudo pacman-key --populate archlinux \
-            && sudo pacman-key --refresh-keys
+            sudo pacman-key --init && sudo pacman-key --populate archlinux && sudo pacman-key --refresh-keys
     else
         "${cmd[@]}"
     fi
@@ -392,8 +383,7 @@ main() {
                 ;;
             3)
                 echo
-                pkg=($(print_enter \
-                    "$(gettext 'Select packages to install (use TAB to toggle selection)')" \
+                pkg=($(print_enter "$(gettext 'Select packages to install (use TAB to toggle selection)')" \
                     "$(helper_listdesc)" '-m' ))
                 if [[ ${#pkg[@]} -gt 0 ]]; then
                     sudo pacman -S "${pkg[@]}" --color always
@@ -406,8 +396,7 @@ main() {
                 ;;
             4)
                 echo
-                pkg=($(print_enter \
-                    "$(gettext 'Select packages to remove (use TAB to toggle selection)')" \
+                pkg=($(print_enter "$(gettext 'Select packages to remove (use TAB to toggle selection)')" \
                     "$(pacman -Qq)" '-m' ))
                 (($?!=0)) && continue
                 [ -z "$pkg" ] && continue
@@ -512,7 +501,7 @@ main() {
                 echo
                 echo "Enter name of package to be searched and installed from AUR and press [Enter] to continue"
                 echo
-                read package
+                read -r package
                 [ -n "$package" ] && helper "$package"
                 unset $package
                 print_prompt "$(gettext 'AUR Helper finished')." "" 1
@@ -550,7 +539,7 @@ main() {
                 ((NOCLEAR)) || clear
                 run_pacnews "$choix"
                 ;;
-            0|q)
+            0)
                 clear && exit
                 ;;
             '')
