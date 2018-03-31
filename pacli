@@ -163,8 +163,12 @@ package_list_files() {
 fix_errors() {
     declare cmd url version arch keys
     sudo rm -f /var/lib/pacman/db.lck
-    cmd=(sudo pacman -Syy)
-    keys=('AEFB411B072836CD48FF0381AE252C284B5DBA5D' '9E4F11C6A072942A7B3FD3B0B81EB14A09A25EB0' '35F52A02854DCCAEC9DD5CC410443C7F54B00041')
+    cmd=(sudo pacman -Syyu)
+    keys=(
+    'AEFB411B072836CD48FF0381AE252C284B5DBA5D'
+    '9E4F11C6A072942A7B3FD3B0B81EB14A09A25EB0'
+    '35F52A02854DCCAEC9DD5CC410443C7F54B00041'
+    )
 
     if hash reflector >/dev/null 2>&1 && [[ $(source /etc/os-release; echo $ID) ==  "ArchLabs" ]]; then
 
@@ -202,9 +206,11 @@ fix_errors() {
         sudo pacman-key --populate archlabs
 
     elif hash reflector >/dev/null 2>&1; then
-        sudo reflector --verbose --score 100 --fastest 25 --sort rate --save /etc/pacman.d/mirrorlist && "${cmd[@]}"
-        sudo pacman -Sy gnupg archlinux-keyring && sudo rm -r /etc/pacman.d/gnupg && \
-            sudo pacman-key --init && sudo pacman-key --populate archlinux && sudo pacman-key --refresh-keys
+        sudo reflector --verbose --score 100 --fastest 25 \
+            --sort rate --save /etc/pacman.d/mirrorlist && "${cmd[@]}"
+        sudo pacman -Syu gnupg archlinux-keyring && sudo rm -r /etc/pacman.d/gnupg && \
+            sudo pacman-key --init && sudo pacman-key --populate archlinux \
+            && sudo pacman-key --refresh-keys
     else
         "${cmd[@]}"
     fi
@@ -365,7 +371,7 @@ main() {
             2)
                 echo
                 sudo reflector --verbose --score 100 --fastest 25 --sort rate \
-                    --save /etc/pacman.d/mirrorlist && sudo pacman -Syy --color always
+                    --save /etc/pacman.d/mirrorlist && sudo pacman -Syyu --color always
                 helper -Qdt
                 paccache -ruvk0
                 paccache -rvk2
